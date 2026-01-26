@@ -1,0 +1,17 @@
+# Project specific
+prompt.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE files (if any in root)
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
