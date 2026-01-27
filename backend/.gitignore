@@ -32,8 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+
 ### Environment & Secrets ###
 .env
 .env.local
-application-secrets.properties
+application.properties          # Exclude fișierul real cu credențiale
 *.secrets.properties
