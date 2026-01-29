@@ -8,6 +8,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
+import java.time.Duration;
 
 /**
  * SecurityConfig - Configurare Spring Security
@@ -60,5 +64,18 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    /**
+     * RestTemplate pentru apeluri HTTP externe (ex. API curs valutar).
+     * În Spring Boot 4, RestTemplateBuilder nu mai expune setConnectTimeout/setReadTimeout,
+     * deci folosim SimpleClientHttpRequestFactory și setăm timeout-urile direct pe factory.
+     */
+    @Bean
+    public RestTemplate restTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(5));
+        factory.setReadTimeout(Duration.ofSeconds(5));
+        return new RestTemplate(factory);
     }
 }

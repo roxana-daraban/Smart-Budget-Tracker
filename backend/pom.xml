@@ -43,6 +43,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+		<!-- RestTemplate / RestClient (Spring Boot 4: pachet separat) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-restclient</artifactId>
+		</dependency>
 		<!-- Spring Data JPA - Repository pattern & Hibernate ORM -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
