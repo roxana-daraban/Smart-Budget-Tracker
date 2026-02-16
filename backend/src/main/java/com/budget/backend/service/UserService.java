@@ -55,6 +55,7 @@ public class UserService {
         response.setUsername(savedUser.getUsername());
         response.setEmail(savedUser.getEmail());
         response.setRole(savedUser.getRole());
+        response.setUserId(savedUser.getId());
 
         return response;
     }
@@ -82,6 +83,7 @@ public class UserService {
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole());
+        response.setUserId(user.getId());
 
         return response;
     }
