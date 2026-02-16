@@ -16,6 +16,8 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => void;
   loading: boolean;
+  register: (username: string, email: string, password: string) => Promise<LoginResult>;
+
 }
 
 export declare function useAuth(): AuthContextType;

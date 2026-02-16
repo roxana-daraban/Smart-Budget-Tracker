@@ -16,6 +16,20 @@ export const authService = {
       }
     };
   },
+  async register(username, email, password) {
+    const { data } = await api.post('/auth/register', { username, email, password });
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userId', data.userId);
+    return {
+      token: data.token,
+      user: {
+        id: data.userId,
+        email: data.email,
+        username: data.username,
+        role: data.role,
+      },
+    };
+  },
 
   logout() {
     localStorage.removeItem('token');

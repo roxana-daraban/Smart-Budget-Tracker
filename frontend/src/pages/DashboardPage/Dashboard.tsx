@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
-import { dashboardService } from '../../../services/dashboardService';
+import { useNavigate, NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { dashboardService } from '../../services/dashboardService';
 import './Dashboard.css';
 import {
   HiArrowUp,
@@ -87,11 +87,25 @@ export default function Dashboard() {
               <span className="logo-text">BudgetSmart</span>
             </div>
             <div className="dashboard-nav-links">
-              <a className="nav-link nav-link-active" href="#">Dashboard</a>
-              <a className="nav-link" href="#">Transactions</a>
-              <a className="nav-link" href="#">Reports</a>
-              <a className="nav-link" href="#">Settings</a>
-            </div>
+  <NavLink
+    to="/dashboard"
+    className={({ isActive }) =>
+      isActive ? 'nav-link nav-link-active' : 'nav-link'
+    }
+  >
+    Dashboard
+  </NavLink>
+  <NavLink
+    to="/transactions"
+    className={({ isActive }) =>
+      isActive ? 'nav-link nav-link-active' : 'nav-link'
+    }
+  >
+    Transactions
+  </NavLink>
+  <a className="nav-link" href="#">Reports</a>
+  <a className="nav-link" href="#">Settings</a>
+</div>
           </div>
           <div className="dashboard-nav-right">
             <button className="nav-notification-btn" type="button">

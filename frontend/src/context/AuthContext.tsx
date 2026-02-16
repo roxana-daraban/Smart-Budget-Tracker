@@ -17,6 +17,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => void;
   loading: boolean;
+  register: (username: string, email: string, password: string) => Promise<LoginResult>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -48,9 +49,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authService.logout();
     setUser(null);
   };
+  const register = async (username: string, email: string, password: string): Promise<LoginResult> => {
+    try {
+      const { user: u } = await authService.register(username, email, password);
+      setUser(u);
+      return { success: true };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.response?.data?.message || 'Registration failed',
+      };
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, register, loading }}>
       {children}
     </AuthContext.Provider>
   );
