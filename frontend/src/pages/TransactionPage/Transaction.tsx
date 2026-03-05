@@ -53,6 +53,7 @@ export default function Transactions() {
     const [formDescription, setFormDescription] = useState('');
     const [formSubmitting, setFormSubmitting] = useState(false);
     const [formError, setFormError] = useState('');
+    const [editingTransaction, setEditingTransaction] = useState<TransactionItem | null>(null);
   
     const perPage = 10;
   
@@ -126,6 +127,7 @@ export default function Transactions() {
     const totalPages = Math.max(1, Math.ceil(totalFiltered / perPage));
   
     const openModal = () => {
+      setEditingTransaction(null);
       setFormType('EXPENSE');
       setFormAmount('');
       setFormCategoryId(categoriesExpense[0]?.id ? String(categoriesExpense[0].id) : '');
@@ -137,8 +139,19 @@ export default function Transactions() {
   
     const closeModal = () => {
       setModalOpen(false);
+      setEditingTransaction(null);
       setFormError('');
     };
+    const openEditModal = (tx: TransactionItem) => {
+  setEditingTransaction(tx);
+  setFormType(tx.categoryType === 'INCOME' ? 'INCOME' : 'EXPENSE');
+  setFormAmount(String(Math.abs(Number(tx.amount))));
+  setFormCategoryId(String(tx.categoryId));
+  setFormDate(tx.date || new Date().toISOString().slice(0, 10));
+  setFormDescription(tx.description || '');
+  setFormError('');
+  setModalOpen(true);
+};
   
     const currentCategories = formType === 'INCOME' ? categoriesIncome : categoriesExpense;
   
@@ -156,15 +169,21 @@ export default function Transactions() {
         return;
       }
       const amountToSend = Math.abs(amount);
+      
       setFormSubmitting(true);
       try {
-        await transactionService.createTransaction({
+        const body = {
           description: formDescription || 'Transaction',
           amount: amountToSend,
           currency: 'USD',
           date: formDate,
-          categoryId,
-        });
+          categoryId: categoryId!,
+        };
+        if (editingTransaction) {
+          await transactionService.updateTransaction(editingTransaction.id, body);
+        } else {
+          await transactionService.createTransaction(body);
+        }
         const updated = await transactionService.getTransactions();
         setTransactions(updated || []);
         const statsRes = await dashboardService.getStatistics();
@@ -385,7 +404,7 @@ export default function Transactions() {
                               type="button"
                               className="transactions-btn-icon"
                               title="Edit"
-                              onClick={() => {}}
+                              onClick={() => openEditModal(tx)}
                             >
                               <HiPencilSquare />
                             </button>
@@ -440,13 +459,15 @@ export default function Transactions() {
                           <button
                             type="button"
                             className="transactions-btn-icon"
-                            onClick={() => {}}
+                            title="Edit"
+                             onClick={() => openEditModal(tx)}
                           >
                             <HiPencilSquare />
                           </button>
                           <button
                             type="button"
                             className="transactions-btn-icon transactions-btn-delete"
+                            title="Delete"
                             onClick={() => handleDelete(tx.id)}
                           >
                             <HiTrash />
@@ -511,7 +532,9 @@ export default function Transactions() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="transactions-modal-header">
-              <h3 className="transactions-modal-title">Add Transaction</h3>
+              <h3 className="transactions-modal-title">
+                {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
+              </h3>
               <button
                 type="button"
                 className="transactions-modal-close"
@@ -630,7 +653,7 @@ export default function Transactions() {
                   className="transactions-modal-submit"
                   disabled={formSubmitting}
                 >
-                  {formSubmitting ? 'Saving…' : 'Save Transaction'}
+                  {formSubmitting ? 'Saving…' : (editingTransaction ? 'Update Transaction' : 'Save Transaction')}
                 </button>
               </div>
             </form>

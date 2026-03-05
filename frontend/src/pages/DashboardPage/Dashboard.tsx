@@ -42,12 +42,15 @@ export default function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  type PeriodKey = 'currentMonth' | 'lastMonth';
+const [period, setPeriod] = useState<PeriodKey>('currentMonth');
 
   useEffect(() => {
     setLoading(true);
     setError('');
+    const { from, to } = getPeriodDates(period);
     Promise.all([
-      dashboardService.getStatistics(),
+      dashboardService.getStatistics(from, to),
       dashboardService.getTransactions(),
     ])
       .then(([stats, txList]) => {
@@ -56,11 +59,33 @@ export default function Dashboard() {
       })
       .catch(() => setError('Nu s-au putut încărca datele.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [period]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const getPeriodDates = (key: PeriodKey): { from: string; to: string } => {
+    const now = new Date();
+    let start: Date;
+    let end: Date;
+    if (key === 'lastMonth') {
+      start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      end = new Date(now.getFullYear(), now.getMonth(), 0);
+    } else {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    }
+    return {
+      from: start.toISOString().slice(0, 10),
+      to: end.toISOString().slice(0, 10),
+    };
+  };
+  
+  const periodLabels: Record<PeriodKey, string> = {
+    currentMonth: 'Luna curentă',
+    lastMonth: 'Luna trecută',
   };
 
   const formatMoney = (value: number | string | null | undefined) =>
@@ -148,16 +173,27 @@ export default function Dashboard() {
                 </div>
                 <div className="dashboard-header-right">
                   <div className="date-picker-wrapper">
-                    <button className="date-picker-btn" type="button">
+                  <button
+                  style={{ marginRight: '1rem' }}
+                  className="date-picker-btn"
+                  type="button"
+                  onClick={() =>
+                  setPeriod((p) => (p === 'currentMonth' ? 'lastMonth' : 'currentMonth'))
+                    }
+                   >
                       <span className="date-picker-content">
                         <HiCalendar className="date-picker-icon" />
-                        Luna curentă
+                        {periodLabels[period]}
                       </span>
                       <HiChevronDown className="date-picker-arrow" />
                     </button>
                   </div>
-                  <button className="add-transaction-btn" type="button">
-                    <HiPlus className="add-transaction-icon" />
+                  <button
+                   className="add-transaction-btn"
+                   type="button"
+                  onClick={() => navigate('/transactions')}
+                  >
+                  <HiPlus className="add-transaction-icon" />
                     Add Transaction
                   </button>
                 </div>
@@ -233,7 +269,11 @@ export default function Dashboard() {
                 <div className="chart-section">
                   <div className="chart-header">
                     <h3 className="chart-title">Expenses by Category</h3>
-                    <button className="chart-view-btn">View Full Report</button>
+                    <button className="chart-view-btn"
+                     type="button"
+                     onClick={() => navigate('/transactions')}
+                    >View Full Report
+                    </button>
                   </div>
                   <div className="chart-content">
                     <div className="chart-donut-wrapper">
@@ -303,7 +343,10 @@ export default function Dashboard() {
                 <div className="activity-section">
                   <div className="activity-header">
                     <h3 className="activity-title">Recent Activity</h3>
-                    <button className="activity-view-btn">View All</button>
+                    <button className="activity-view-btn"
+                    type="button"
+                    onClick={() => navigate('/transactions')}
+                    >View All</button>
                   </div>
                   <div className="activity-list-wrapper">
                     <ul className="activity-list">
@@ -358,6 +401,7 @@ export default function Dashboard() {
                     <button
                       className="activity-history-btn"
                       type="button"
+                      onClick={() => navigate('/transactions')}
                     >
                       View Transaction History
                     </button>
