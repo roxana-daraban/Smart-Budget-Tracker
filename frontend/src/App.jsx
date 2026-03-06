@@ -4,6 +4,7 @@ import Login from './pages/LoginPage/Login';
 import Dashboard from './pages/DashboardPage/Dashboard';
 import Register from './pages/RegisterPage/Register';
 import Transactions from './pages/TransactionPage/Transaction';
+import Profile from './pages/ProfilePage/Profile';
 
 /** Protejează rutele care cer autentificare. Dacă user nu e logat, redirect la /login. */
 function ProtectedRoute({ children }) {
@@ -34,6 +35,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Transactions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

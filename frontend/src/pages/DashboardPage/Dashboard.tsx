@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { dashboardService } from '../../services/dashboardService';
 import './Dashboard.css';
+import Navbar from '../../components/Navbar/Navbar';
 import {
   HiArrowUp,
   HiArrowDown,
-  HiWallet,
-  HiBell,
   HiCalendar,
   HiChevronDown,
   HiPlus,
   HiArrowTrendingUp,
   HiArrowTrendingDown,
   HiBanknotes,
-} from "react-icons/hi2";
+} from 'react-icons/hi2';
 
 interface DashboardStatistics {
   totalIncome: number;
@@ -36,7 +34,6 @@ interface Transaction {
 }
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [statistics, setStatistics] = useState<DashboardStatistics | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -60,11 +57,6 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
       .catch(() => setError('Nu s-au putut încărca datele.'))
       .finally(() => setLoading(false));
   }, [period]);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const getPeriodDates = (key: PeriodKey): { from: string; to: string } => {
     const now = new Date();
@@ -102,59 +94,7 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
 
   return (
     <div className="dashboard-page">
-      <nav className="dashboard-nav">
-        <div className="dashboard-nav-container">
-          <div className="dashboard-nav-left">
-            <div className="dashboard-logo">
-              <div className="logo-icon">
-                <HiWallet />
-              </div>
-              <span className="logo-text">BudgetSmart</span>
-            </div>
-            <div className="dashboard-nav-links">
-  <NavLink
-    to="/dashboard"
-    className={({ isActive }) =>
-      isActive ? 'nav-link nav-link-active' : 'nav-link'
-    }
-  >
-    Dashboard
-  </NavLink>
-  <NavLink
-    to="/transactions"
-    className={({ isActive }) =>
-      isActive ? 'nav-link nav-link-active' : 'nav-link'
-    }
-  >
-    Transactions
-  </NavLink>
-  <a className="nav-link" href="#">Reports</a>
-  <a className="nav-link" href="#">Settings</a>
-</div>
-          </div>
-          <div className="dashboard-nav-right">
-            <button className="nav-notification-btn" type="button">
-              <span className="sr-only">View notifications</span>
-              <HiBell />
-            </button>
-            <div className="nav-user">
-              <div className="nav-user-info">
-                <p className="nav-user-name">
-                  {user?.username || user?.email || 'User'}
-                </p>
-                <p className="nav-user-role">Member</p>
-              </div>
-              <button
-                type="button"
-                className="nav-logout-btn"
-                onClick={handleLogout}
-              >
-                Log out
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar/>
 
       <main className="dashboard-main">
         <div className="dashboard-content">

@@ -9,6 +9,7 @@ import com.budget.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.budget.backend.dto.request.UpdateProfileRequestDTO;
 
 import java.util.Optional;
 
@@ -85,6 +86,41 @@ public class UserService {
         response.setRole(user.getRole());
         response.setUserId(user.getId());
 
+        return response;
+    }
+    /**
+     * Actualizează username și/sau email pentru utilizatorul cu id-ul dat.
+     * Verifică unicitatea: nici un alt user să nu aibă același username/email.
+     * După save, generează un token nou (conține noile date) și returnează același DTO ca la login.
+     */
+    public AuthResponseDTO updateProfile(Long userId, UpdateProfileRequestDTO request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.getUsername() != null && !request.getUsername().isBlank()) {
+            if (!request.getUsername().equals(user.getUsername())
+                    && userRepository.existsByUsername(request.getUsername())) {
+                throw new RuntimeException("Username already exists");
+            }
+            user.setUsername(request.getUsername().trim());
+        }
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            if (!request.getEmail().equals(user.getEmail())
+                    && userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email already exists");
+            }
+            user.setEmail(request.getEmail().trim());
+        }
+
+        User savedUser = userRepository.save(user);
+        String token = jwtService.generateToken(savedUser);
+
+        AuthResponseDTO response = new AuthResponseDTO();
+        response.setToken(token);
+        response.setUsername(savedUser.getUsername());
+        response.setEmail(savedUser.getEmail());
+        response.setRole(savedUser.getRole());
+        response.setUserId(savedUser.getId());
         return response;
     }
 }

@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.budget.backend.dto.request.UpdateProfileRequestDTO;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
  * AuthController - Controller pentru autentificare
@@ -38,6 +41,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
         AuthResponseDTO response = userService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<AuthResponseDTO> updateProfile(
+            @RequestHeader("X-User-Id") Long userId,
+            @Valid @RequestBody UpdateProfileRequestDTO request) {
+        AuthResponseDTO response = userService.updateProfile(userId, request);
         return ResponseEntity.ok(response);
     }
 

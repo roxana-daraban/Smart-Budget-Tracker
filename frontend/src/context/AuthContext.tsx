@@ -18,7 +18,7 @@ interface AuthContextType {
   logout: () => void;
   loading: boolean;
   register: (username: string, email: string, password: string) => Promise<LoginResult>;
-}
+  updateProfile: (data: { username?: string; email?: string }) => Promise<{ success: boolean; error?: string }>;}
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -61,9 +61,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
   };
+  const updateProfile = async (data: { username?: string; email?: string }) => {
+    try {
+      const { user: u } = await authService.updateProfile({
+        username: data.username ?? '',
+        email: data.email ?? '',
+      });
+      setUser(u);
+      return { success: true };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.response?.data?.message || 'Update failed',
+      };
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, register, updateProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );

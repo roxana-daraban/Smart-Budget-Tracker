@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import { transactionService } from '../../services/transactionService';
 import { dashboardService } from '../../services/dashboardService';
 import {
-  HiWallet,
-  HiBell,
   HiPlus,
   HiMagnifyingGlass,
   HiPencilSquare,
   HiTrash,
   HiDocumentArrowDown,
 } from 'react-icons/hi2';
+import Navbar from '../../components/Navbar/Navbar';
 import '../DashboardPage/Dashboard.css';
 import './Transactions.css';
 
@@ -33,8 +30,6 @@ interface Category {
 }
 
 export default function Transactions() {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
     const [transactions, setTransactions] = useState<TransactionItem[]>([]);
     const [categoriesIncome, setCategoriesIncome] = useState<Category[]>([]);
     const [categoriesExpense, setCategoriesExpense] = useState<Category[]>([]);
@@ -79,11 +74,6 @@ export default function Transactions() {
         .catch(() => setError('Could not load data.'))
         .finally(() => setLoading(false));
     }, []);
-  
-    const handleLogout = () => {
-      logout();
-      navigate('/login');
-    };
   
     const formatMoney = (value: number | string | null | undefined) =>
       Number(value ?? 0).toFixed(2);
@@ -217,56 +207,7 @@ export default function Transactions() {
     };
     return (
         <div className="dashboard-page transactions-page">
-          <nav className="dashboard-nav">
-            <div className="dashboard-nav-container">
-              <div className="dashboard-nav-left">
-                <div className="dashboard-logo">
-                  <div className="logo-icon">
-                    <HiWallet />
-                  </div>
-                  <span className="logo-text">BudgetSmart</span>
-                </div>
-                <div className="dashboard-nav-links">
-                  <NavLink
-                    to="/dashboard"
-                    className={({ isActive }) =>
-                      isActive ? 'nav-link nav-link-active' : 'nav-link'
-                    }
-                  >
-                    Dashboard
-                  </NavLink>
-                  <NavLink
-                    to="/transactions"
-                    className={({ isActive }) =>
-                      isActive ? 'nav-link nav-link-active' : 'nav-link'
-                    }
-                  >
-                    Transactions
-                  </NavLink>
-                  <a className="nav-link" href="#">Reports</a>
-                  <a className="nav-link" href="#">Settings</a>
-                </div>
-              </div>
-              <div className="dashboard-nav-right">
-                <button className="nav-notification-btn" type="button">
-                  <span className="sr-only">View notifications</span>
-                  <HiBell />
-                </button>
-                <div className="nav-user">
-                  <div className="nav-user-info">
-                    <p className="nav-user-name">
-                      {user?.username || user?.email || 'User'}
-                    </p>
-                    <p className="nav-user-role">Member</p>
-                  </div>
-                  <button type="button" className="nav-logout-btn" onClick={handleLogout}>
-                    Log out
-                  </button>
-                </div>
-              </div>
-            </div>
-          </nav>
-    
+          <Navbar />
           <main className="dashboard-main transactions-main">
             <div className="transactions-content">
             {loading && <p className="transactions-loading">Loading…</p>}

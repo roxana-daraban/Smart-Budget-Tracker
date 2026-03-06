@@ -1,5 +1,6 @@
 import React from 'react';
 
+
 export interface User {
   id: string | number;
   email?: string;
@@ -17,8 +18,7 @@ export interface AuthContextType {
   logout: () => void;
   loading: boolean;
   register: (username: string, email: string, password: string) => Promise<LoginResult>;
-
+  updateProfile: (data: { username?: string; email?: string }) => Promise<{ success: boolean; error?: string }>;
 }
 
 export declare function useAuth(): AuthContextType;
-export declare function AuthProvider({ children }: { children: React.ReactNode }): React.JSX.Element;
