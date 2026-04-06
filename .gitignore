@@ -1,22 +1,29 @@
-# Project specific
+# Project specific (mentor / local prompt — nu e necesar în repo)
 prompt.txt
 
 # Frontend (Node / Vite)
 frontend/node_modules/
 frontend/dist/
+frontend/dist-ssr/
+frontend/coverage/
 
-# Backend (Maven)
+# Backend (Maven / Java)
 backend/target/
+hs_err_pid*
+replay_pid*
+*.hprof
 
 # Environment and local secrets (do not commit)
 .env
 .env.local
 .env.*.local
 backend/src/main/resources/application-local.properties
-# Spring: fișierul real cu parole, JWT, chei API (folosește template-uri *.example în repo)
+# Spring: fișierul real cu parole, JWT, chei API — copiază din templates/
 backend/src/main/resources/application.properties
 **/application-secrets.properties
 *.secrets.properties
+*.env.properties
+
 # Key material
 *.pem
 *.p12
@@ -29,11 +36,21 @@ Thumbs.db
 *.swo
 *~
 
-# IDE files (if any in root)
+# IDE / editor (root + generic)
 .idea/
 .vscode/
 *.iml
+*.ipr
+*.iws
 
-# Logs
+# Personal / one-off workspace files (opțional; unele echipe comit *.code-workspace)
+*-local.code-workspace
+
+# Logs & caches
 *.log
 npm-debug.log*
+.yarn/
+.pnpm-store/
+
+# Tooling
+*.tsbuildinfo

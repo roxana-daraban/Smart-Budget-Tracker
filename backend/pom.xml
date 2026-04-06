@@ -43,6 +43,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+		<!-- ObjectMapper / JsonNode (Jackson); webmvc nu îl garantează întotdeauna în Boot 4 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-json</artifactId>
+		</dependency>
 		<!-- RestTemplate / RestClient (Spring Boot 4: pachet separat) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

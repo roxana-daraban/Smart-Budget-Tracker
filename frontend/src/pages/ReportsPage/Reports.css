@@ -1,0 +1,180 @@
+/* Pagina Reports — se bazează pe clase din Dashboard.css pentru nav/layout */
+
+.reports-page .reports-main {
+  padding: 1.5rem clamp(1rem, 4vw, 2.5rem);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.reports-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.reports-subtitle {
+  opacity: 0.85;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+.reports-period-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.reports-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.reports-date-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.reports-date-input {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+  font-size: 0.95rem;
+}
+
+.reports-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.reports-stat-card {
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.reports-stat-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+  margin: 0 0 0.35rem;
+}
+
+.reports-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.reports-ai-actions {
+  margin-bottom: 1.5rem;
+}
+
+.reports-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.reports-ai-btn:hover:not(:disabled) {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.reports-ai-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.reports-ai-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: reports-spin 0.7s linear infinite;
+}
+
+@keyframes reports-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.reports-ai-card {
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  background: linear-gradient(
+    145deg,
+    rgba(37, 99, 235, 0.18),
+    rgba(15, 23, 42, 0.65)
+  );
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.12);
+}
+
+.reports-ai-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.reports-ai-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.reports-ai-body {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.reports-error {
+  color: #f87171;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0;
+}
+
+.reports-loading-stats {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+@media (prefers-color-scheme: light) {
+  .reports-date-input {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.12);
+    color: #0f172a;
+  }
+  .reports-stat-card {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+  .reports-ai-card {
+    background: linear-gradient(145deg, #e8f0fe, #f8fafc);
+    border-color: rgba(37, 99, 235, 0.25);
+  }
+}

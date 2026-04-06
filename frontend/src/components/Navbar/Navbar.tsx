@@ -43,7 +43,14 @@ export default function AppNavbar() {
             >
               Transactions
             </NavLink>
-            <a className="nav-link" href="#">Reports</a>
+            <NavLink
+              to="/reports"
+              className={({ isActive }) =>
+                isActive ? 'nav-link nav-link-active' : 'nav-link'
+              }
+            >
+              Reports
+            </NavLink>
             <NavLink
               to="/profile"
               className={({ isActive }) =>

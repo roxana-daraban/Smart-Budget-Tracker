@@ -26,6 +26,10 @@ jwt.expiration=86400000
 
 # Google Gemini API Key (for AI Financial Advisor feature)
 gemini.api.key=YOUR_GEMINI_API_KEY_HERE
+gemini.api.model=gemini-2.5-flash
+
+# Currency API (Frankfurter - no key required)
+currency.api.base-url=https://api.frankfurter.app
 
 # Currency Exchange API Key (optional)
 currency.api.key=YOUR_CURRENCY_API_KEY_HERE
