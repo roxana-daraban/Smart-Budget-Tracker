@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -77,6 +78,18 @@ public class GlobalExceptionHandler {
      *
      * Status code: 409 Conflict pentru duplicate, 401 Unauthorized pentru credențiale greșite
      */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAccessDenied(
+            AccessDeniedException ex, WebRequest request) {
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO();
+        errorResponse.setTimestamp(LocalDateTime.now());
+        errorResponse.setStatus(HttpStatus.FORBIDDEN.value());
+        errorResponse.setError("Forbidden");
+        errorResponse.setMessage(ex.getMessage() != null ? ex.getMessage() : "Access denied");
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponseDTO> handleRuntimeException(
             RuntimeException ex, WebRequest request) {

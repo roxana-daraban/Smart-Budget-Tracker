@@ -29,6 +29,12 @@ public class Transaction {
     @Column(nullable = false, length = 3)
     private String currency; // ISO 4217 currency codes (RON, EUR, USD, etc.)
 
+    /**
+     * Suma echivalentă în moneda de bază a utilizatorului (la data tranzacției), pentru totaluri corecte.
+     */
+    @Column(name = "amount_in_base_currency", nullable = false, precision = 19, scale = 2)
+    private BigDecimal amountInBaseCurrency = BigDecimal.ZERO;
+
     @Column(nullable = false)
     private LocalDate date;
 

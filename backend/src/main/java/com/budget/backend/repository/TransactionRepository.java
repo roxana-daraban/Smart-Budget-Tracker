@@ -15,17 +15,19 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     List<Transaction> findByUser(User user);
-    List<Transaction> findByUserOrderByDateDesc(User user);
+
+    /** Cele mai noi primele; la aceeași dată, id mai mare = introdusă mai recent */
+    List<Transaction> findByUserOrderByDateDescIdDesc(User user);
     List<Transaction> findByUserAndDateBetween(User user, LocalDate startDate, LocalDate endDate);
     List<Transaction> findByUserAndCategoryId(User user, Long categoryId);
 
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.user = :user AND t.date BETWEEN :start AND :end AND t.category.type = com.budget.backend.entity.TransactionType.INCOME")
+    @Query("SELECT COALESCE(SUM(COALESCE(NULLIF(t.amountInBaseCurrency, 0), t.amount)), 0) FROM Transaction t WHERE t.user = :user AND t.date BETWEEN :start AND :end AND t.category.type = com.budget.backend.entity.TransactionType.INCOME")
     BigDecimal sumIncomeByUserAndDateBetween(@Param("user") User user, @Param("start") LocalDate start, @Param("end") LocalDate end);
 
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.user = :user AND t.date BETWEEN :start AND :end AND t.category.type = com.budget.backend.entity.TransactionType.EXPENSE")
+    @Query("SELECT COALESCE(SUM(COALESCE(NULLIF(t.amountInBaseCurrency, 0), t.amount)), 0) FROM Transaction t WHERE t.user = :user AND t.date BETWEEN :start AND :end AND t.category.type = com.budget.backend.entity.TransactionType.EXPENSE")
     BigDecimal sumExpenseByUserAndDateBetween(@Param("user") User user, @Param("start") LocalDate start, @Param("end") LocalDate end);
 
-    @Query("SELECT new com.budget.backend.dto.response.CategoryExpenseDTO(c.name, c.id, SUM(t.amount)) FROM Transaction t JOIN t.category c WHERE t.user = :user AND t.date BETWEEN :start AND :end AND c.type = com.budget.backend.entity.TransactionType.EXPENSE GROUP BY c.id, c.name")
+    @Query("SELECT new com.budget.backend.dto.response.CategoryExpenseDTO(c.name, c.id, SUM(COALESCE(NULLIF(t.amountInBaseCurrency, 0), t.amount))) FROM Transaction t JOIN t.category c WHERE t.user = :user AND t.date BETWEEN :start AND :end AND c.type = com.budget.backend.entity.TransactionType.EXPENSE GROUP BY c.id, c.name")
     List<CategoryExpenseDTO> getExpensesByCategory(@Param("user") User user, @Param("start") LocalDate start, @Param("end") LocalDate end);
 
 }

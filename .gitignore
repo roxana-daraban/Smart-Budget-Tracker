@@ -13,6 +13,14 @@ backend/target/
 .env.local
 .env.*.local
 backend/src/main/resources/application-local.properties
+# Spring: fișierul real cu parole, JWT, chei API (folosește template-uri *.example în repo)
+backend/src/main/resources/application.properties
+**/application-secrets.properties
+*.secrets.properties
+# Key material
+*.pem
+*.p12
+*.jks
 
 # OS files
 .DS_Store

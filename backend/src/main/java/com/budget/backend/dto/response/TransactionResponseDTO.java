@@ -19,6 +19,8 @@ public class TransactionResponseDTO {
     private String description;
     private BigDecimal amount;
     private String currency;
+    /** Suma în moneda de bază a utilizatorului */
+    private BigDecimal amountInBaseCurrency;
     private LocalDate date;
     private Long categoryId;
     private String categoryName;

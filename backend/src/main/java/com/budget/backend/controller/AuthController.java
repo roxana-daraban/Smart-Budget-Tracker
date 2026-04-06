@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.budget.backend.dto.request.UpdateProfileRequestDTO;
+import com.budget.backend.security.SecurityUtils;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
  * AuthController - Controller pentru autentificare
@@ -46,8 +47,11 @@ public class AuthController {
 
     @PutMapping("/profile")
     public ResponseEntity<AuthResponseDTO> updateProfile(
-            @RequestHeader("X-User-Id") Long userId,
             @Valid @RequestBody UpdateProfileRequestDTO request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new AccessDeniedException("Not authenticated");
+        }
         AuthResponseDTO response = userService.updateProfile(userId, request);
         return ResponseEntity.ok(response);
     }

@@ -50,15 +50,7 @@ public class UserService {
         // 6. Generează JWT token
         String token = jwtService.generateToken(savedUser);
 
-        // 7. Returnează AuthResponseDTO
-        AuthResponseDTO response = new AuthResponseDTO();
-        response.setToken(token);
-        response.setUsername(savedUser.getUsername());
-        response.setEmail(savedUser.getEmail());
-        response.setRole(savedUser.getRole());
-        response.setUserId(savedUser.getId());
-
-        return response;
+        return buildAuthResponse(savedUser, token);
     }
     public AuthResponseDTO login(LoginRequestDTO request) {
         // 1. Găsește utilizatorul după email
@@ -78,15 +70,7 @@ public class UserService {
         // 3. Generează JWT token
         String token = jwtService.generateToken(user);
 
-        // 4. Returnează AuthResponseDTO
-        AuthResponseDTO response = new AuthResponseDTO();
-        response.setToken(token);
-        response.setUsername(user.getUsername());
-        response.setEmail(user.getEmail());
-        response.setRole(user.getRole());
-        response.setUserId(user.getId());
-
-        return response;
+        return buildAuthResponse(user, token);
     }
     /**
      * Actualizează username și/sau email pentru utilizatorul cu id-ul dat.
@@ -115,12 +99,18 @@ public class UserService {
         User savedUser = userRepository.save(user);
         String token = jwtService.generateToken(savedUser);
 
+        return buildAuthResponse(savedUser, token);
+    }
+
+    private AuthResponseDTO buildAuthResponse(User user, String token) {
         AuthResponseDTO response = new AuthResponseDTO();
         response.setToken(token);
-        response.setUsername(savedUser.getUsername());
-        response.setEmail(savedUser.getEmail());
-        response.setRole(savedUser.getRole());
-        response.setUserId(savedUser.getId());
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole());
+        response.setUserId(user.getId());
+        String bc = user.getBaseCurrency();
+        response.setBaseCurrency(bc != null && !bc.isBlank() ? bc : "RON");
         return response;
     }
 }

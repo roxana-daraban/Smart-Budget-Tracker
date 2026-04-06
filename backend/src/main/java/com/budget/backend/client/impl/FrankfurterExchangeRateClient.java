@@ -28,7 +28,8 @@ public class FrankfurterExchangeRateClient implements ExchangeRateClient {
         if (fromCurrency.equalsIgnoreCase(toCurrency)) {
             return Optional.of(BigDecimal.ONE);
         }
-        String url = baseUrl + "/latest?from=" + fromCurrency + "&to=" + toCurrency;
+        String pathSegment = (date != null) ? "/" + date : "/latest";
+        String url = baseUrl + pathSegment + "?from=" + fromCurrency + "&to=" + toCurrency;
         try {
             FrankfurterResponseDTO response = restTemplate.getForObject(url, FrankfurterResponseDTO.class);
             if (response != null && response.getRates() != null && response.getRates().containsKey(toCurrency)) {

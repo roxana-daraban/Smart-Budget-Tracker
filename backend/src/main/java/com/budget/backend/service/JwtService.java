@@ -31,8 +31,11 @@ public class JwtService {
     /**
      * Generează un JWT token pentru un utilizator
      */
+    public static final String CLAIM_USER_ID = "userId";
+
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put(CLAIM_USER_ID, user.getId());
         claims.put("email", user.getEmail());
         claims.put("role", user.getRole().name());
 
@@ -66,6 +69,26 @@ public class JwtService {
      */
     public String getUsernameFromToken(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public Long getUserIdFromToken(String token) {
+        Object raw = extractAllClaims(token).get(CLAIM_USER_ID);
+        if (raw instanceof Number n) {
+            return n.longValue();
+        }
+        if (raw instanceof String s) {
+            try {
+                return Long.parseLong(s);
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public String getRoleFromToken(String token) {
+        Object raw = extractAllClaims(token).get("role");
+        return raw != null ? raw.toString() : null;
     }
 
     /**

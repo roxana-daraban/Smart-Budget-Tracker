@@ -30,6 +30,10 @@ public class User {
     @Column(nullable = false, length = 20)
     private Role role = Role.USER; // Default value: USER
 
+    /** Moneda de bază pentru rapoarte (ISO 4217), implicit RON */
+    @Column(name = "base_currency", nullable = false, length = 3)
+    private String baseCurrency = "RON";
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -38,12 +42,18 @@ public class User {
 
     @PrePersist
     protected void onCreate() {
+        if (baseCurrency == null || baseCurrency.isBlank()) {
+            baseCurrency = "RON";
+        }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
+        if (baseCurrency == null || baseCurrency.isBlank()) {
+            baseCurrency = "RON";
+        }
         updatedAt = LocalDateTime.now();
     }
 }

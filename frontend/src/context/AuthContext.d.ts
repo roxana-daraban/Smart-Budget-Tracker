@@ -5,6 +5,7 @@ export interface User {
   id: string | number;
   email?: string;
   username?: string;
+  baseCurrency?: string;
 }
 
 export interface LoginResult {

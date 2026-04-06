@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dashboardService } from '../../services/dashboardService';
+import { useAuth } from '../../context/AuthContext';
 import './Dashboard.css';
 import Navbar from '../../components/Navbar/Navbar';
 import {
   HiArrowUp,
   HiArrowDown,
   HiCalendar,
-  HiChevronDown,
   HiPlus,
   HiArrowTrendingUp,
   HiArrowTrendingDown,
   HiBanknotes,
 } from 'react-icons/hi2';
+import { formatLocalYmd, parseLocalYmd } from '../../utils/localDate';
+import { effectiveAmountInBase } from '../../utils/transactionAmount';
+import { compareTransactionsNewestFirst } from '../../utils/transactionSort';
 
 interface DashboardStatistics {
   totalIncome: number;
@@ -29,23 +32,48 @@ interface Transaction {
   id: number;
   description: string;
   amount: number;
+  amountInBaseCurrency?: number;
   date: string;
   categoryType: string;
 }
 
+const MONTH_NAMES_RO = [
+  'Ianuarie',
+  'Februarie',
+  'Martie',
+  'Aprilie',
+  'Mai',
+  'Iunie',
+  'Iulie',
+  'August',
+  'Septembrie',
+  'Octombrie',
+  'Noiembrie',
+  'Decembrie',
+];
+
+/** Buget lunar provizoriu per categorie (RON în moneda de bază până la tabel dedicat) */
+const BUDGET_CAP_PER_CATEGORY = 500;
+const RECENT_ACTIVITY_LIMIT = 10;
+
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const baseCurrency = (user?.baseCurrency || 'RON').toUpperCase();
+
+  const currentYear = new Date().getFullYear();
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(() =>
+    new Date().getMonth()
+  );
   const [statistics, setStatistics] = useState<DashboardStatistics | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  type PeriodKey = 'currentMonth' | 'lastMonth';
-const [period, setPeriod] = useState<PeriodKey>('currentMonth');
 
   useEffect(() => {
     setLoading(true);
     setError('');
-    const { from, to } = getPeriodDates(period);
+    const { from, to } = getPeriodDatesForMonth(currentYear, selectedMonthIndex);
     Promise.all([
       dashboardService.getStatistics(from, to),
       dashboardService.getTransactions(),
@@ -56,28 +84,18 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
       })
       .catch(() => setError('Nu s-au putut încărca datele.'))
       .finally(() => setLoading(false));
-  }, [period]);
+  }, [selectedMonthIndex, currentYear]);
 
-  const getPeriodDates = (key: PeriodKey): { from: string; to: string } => {
-    const now = new Date();
-    let start: Date;
-    let end: Date;
-    if (key === 'lastMonth') {
-      start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      end = new Date(now.getFullYear(), now.getMonth(), 0);
-    } else {
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    }
+  const getPeriodDatesForMonth = (
+    year: number,
+    monthIndex: number
+  ): { from: string; to: string } => {
+    const start = new Date(year, monthIndex, 1);
+    const end = new Date(year, monthIndex + 1, 0);
     return {
-      from: start.toISOString().slice(0, 10),
-      to: end.toISOString().slice(0, 10),
+      from: formatLocalYmd(start),
+      to: formatLocalYmd(end),
     };
-  };
-  
-  const periodLabels: Record<PeriodKey, string> = {
-    currentMonth: 'Luna curentă',
-    lastMonth: 'Luna trecută',
   };
 
   const formatMoney = (value: number | string | null | undefined) =>
@@ -92,9 +110,19 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
 
   const CHART_COLORS = ['#1c5cf2', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+  /** Feed global: ultimele tranzacții din istoric, fără legătură cu luna din dropdown */
+  const recentActivityTransactions = useMemo(() => {
+    return [...transactions]
+      .filter((tx) => !Number.isNaN(parseLocalYmd(tx.date).getTime()))
+      .sort(compareTransactionsNewestFirst)
+      .slice(0, RECENT_ACTIVITY_LIMIT);
+  }, [transactions]);
+
+  const periodLabel = `${MONTH_NAMES_RO[selectedMonthIndex]} ${currentYear}`;
+
   return (
     <div className="dashboard-page">
-      <Navbar/>
+      <Navbar />
 
       <main className="dashboard-main">
         <div className="dashboard-content">
@@ -112,28 +140,30 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
                   </p>
                 </div>
                 <div className="dashboard-header-right">
-                  <div className="date-picker-wrapper">
-                  <button
-                  style={{ marginRight: '1rem' }}
-                  className="date-picker-btn"
-                  type="button"
-                  onClick={() =>
-                  setPeriod((p) => (p === 'currentMonth' ? 'lastMonth' : 'currentMonth'))
-                    }
-                   >
-                      <span className="date-picker-content">
-                        <HiCalendar className="date-picker-icon" />
-                        {periodLabels[period]}
-                      </span>
-                      <HiChevronDown className="date-picker-arrow" />
-                    </button>
+                  <div className="date-picker-wrapper flex items-center gap-2">
+                    <HiCalendar className="date-picker-icon shrink-0 opacity-80" />
+                    <select
+                      id="dashboard-month-select"
+                      aria-label="Selectează luna"
+                      value={selectedMonthIndex}
+                      onChange={(e) =>
+                        setSelectedMonthIndex(Number(e.target.value))
+                      }
+                      className="block min-w-[14rem] cursor-pointer rounded-lg border border-gray-400/40 bg-white/10 px-3 py-2 text-sm font-medium text-inherit shadow-sm backdrop-blur-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:border-gray-500/40"
+                    >
+                      {MONTH_NAMES_RO.map((name, i) => (
+                        <option key={name} value={i}>
+                          {name} {currentYear}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <button
-                   className="add-transaction-btn"
-                   type="button"
-                  onClick={() => navigate('/transactions')}
+                    className="add-transaction-btn"
+                    type="button"
+                    onClick={() => navigate('/transactions')}
                   >
-                  <HiPlus className="add-transaction-icon" />
+                    <HiPlus className="add-transaction-icon" />
                     Add Transaction
                   </button>
                 </div>
@@ -142,40 +172,40 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
               <div className="stats-grid">
                 <div className="stat-card">
                   <div className="stat-card-content">
-                  <div className="stat-card-icon stat-card-icon-income">
-  <HiArrowUp />
-</div>
+                    <div className="stat-card-icon stat-card-icon-income">
+                      <HiArrowUp />
+                    </div>
                     <div className="stat-card-info">
                       <dt className="stat-card-label">Total Income</dt>
                       <dd className="stat-card-value">
-                        ${formatMoney(statistics?.totalIncome)}
+                        {formatMoney(statistics?.totalIncome)} {baseCurrency}
                       </dd>
                     </div>
                   </div>
                   <div className="stat-card-footer stat-card-footer-income">
                     <div className="stat-card-trend stat-card-trend-up">
                       <HiArrowTrendingUp className="trend-icon" />
-                      <span className="trend-text">Luna curentă</span>
+                      <span className="trend-text">{periodLabel}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="stat-card">
                   <div className="stat-card-content">
-                  <div className="stat-card-icon stat-card-icon-expense">
-  <HiArrowDown />
-</div>
+                    <div className="stat-card-icon stat-card-icon-expense">
+                      <HiArrowDown />
+                    </div>
                     <div className="stat-card-info">
                       <dt className="stat-card-label">Total Expenses</dt>
                       <dd className="stat-card-value">
-                        ${formatMoney(statistics?.totalExpense)}
+                        {formatMoney(statistics?.totalExpense)} {baseCurrency}
                       </dd>
                     </div>
                   </div>
                   <div className="stat-card-footer stat-card-footer-expense">
                     <div className="stat-card-trend stat-card-trend-down">
                       <HiArrowTrendingDown className="trend-icon" />
-                      <span className="trend-text">Luna curentă</span>
+                      <span className="trend-text">{periodLabel}</span>
                     </div>
                   </div>
                 </div>
@@ -192,14 +222,14 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
                         Total Balance
                       </dt>
                       <dd className="stat-card-value stat-card-value-balance">
-                        ${formatMoney(statistics?.balance)}
+                        {formatMoney(statistics?.balance)} {baseCurrency}
                       </dd>
                     </div>
                   </div>
                   <div className="stat-card-footer stat-card-footer-balance">
                     <div className="stat-card-trend stat-card-trend-balance">
                       <HiBanknotes className="trend-icon" />
-                      Sold curent
+                      Sold ({periodLabel})
                     </div>
                   </div>
                 </div>
@@ -209,21 +239,21 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
                 <div className="chart-section">
                   <div className="chart-header">
                     <h3 className="chart-title">Expenses by Category</h3>
-                    <button className="chart-view-btn"
-                     type="button"
-                     onClick={() => navigate('/transactions')}
-                    >View Full Report
+                    <button
+                      className="chart-view-btn"
+                      type="button"
+                      onClick={() => navigate('/transactions')}
+                    >
+                      View Full Report
                     </button>
                   </div>
                   <div className="chart-content">
                     <div className="chart-donut-wrapper">
                       <div className="chart-donut">
                         <div className="chart-donut-inner">
-                          <span className="chart-donut-label">
-                            Total Spent
-                          </span>
+                          <span className="chart-donut-label">Total Spent</span>
                           <span className="chart-donut-value">
-                            ${formatMoney(totalExpenseForChart)}
+                            {formatMoney(totalExpenseForChart)} {baseCurrency}
                           </span>
                         </div>
                       </div>
@@ -263,8 +293,8 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
                                     {cat.categoryName}
                                   </p>
                                   <p className="legend-detail">
-                                    {pct}% • $
-                                    {formatMoney(cat.totalAmount)}
+                                    {pct}% • {formatMoney(cat.totalAmount)}{' '}
+                                    {baseCurrency}
                                   </p>
                                 </div>
                               </div>
@@ -283,23 +313,29 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
                 <div className="activity-section">
                   <div className="activity-header">
                     <h3 className="activity-title">Recent Activity</h3>
-                    <button className="activity-view-btn"
-                    type="button"
-                    onClick={() => navigate('/transactions')}
-                    >View All</button>
+                    <button
+                      className="activity-view-btn"
+                      type="button"
+                      onClick={() => navigate('/transactions')}
+                    >
+                      View All
+                    </button>
                   </div>
                   <div className="activity-list-wrapper">
                     <ul className="activity-list">
-                      {transactions.length === 0 ? (
+                      {recentActivityTransactions.length === 0 ? (
                         <li className="activity-item">
-                          <p className="activity-name">Nicio tranzacție</p>
+                          <p className="activity-name">
+                            Nicio tranzacție în istoric
+                          </p>
                         </li>
                       ) : (
-                        transactions.slice(0, 5).map(
+                        recentActivityTransactions.map(
                           (tx: {
                             id: number;
                             description: string;
                             amount: number;
+                            amountInBaseCurrency?: number;
                             date: string;
                             categoryType: string;
                           }) => (
@@ -312,7 +348,11 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
                                       : 'activity-icon activity-icon-1'
                                   }
                                 >
-                                  {tx.categoryType === 'INCOME' ? <HiArrowUp /> : <HiArrowDown />}
+                                  {tx.categoryType === 'INCOME' ? (
+                                    <HiArrowUp />
+                                  ) : (
+                                    <HiArrowDown />
+                                  )}
                                 </div>
                                 <div>
                                   <p className="activity-name">
@@ -328,8 +368,9 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
                                     : 'activity-amount activity-amount-expense'
                                 }
                               >
-                                {tx.categoryType === 'INCOME' ? '+' : '-'}$
-                                {formatMoney(Math.abs(Number(tx.amount)))}
+                                {tx.categoryType === 'INCOME' ? '+' : '-'}
+                                {formatMoney(effectiveAmountInBase(tx))}{' '}
+                                {baseCurrency}
                               </span>
                             </li>
                           )
@@ -351,31 +392,61 @@ const [period, setPeriod] = useState<PeriodKey>('currentMonth');
 
               <div className="budget-section">
                 <h3 className="budget-title">Monthly Budgets</h3>
+                <p className="mb-3 text-sm opacity-80">
+                  Buget provizoriu: {BUDGET_CAP_PER_CATEGORY} {baseCurrency} /
+                  categorie (cheltuieli reale din {periodLabel})
+                </p>
                 <div className="budget-grid">
-                  <div className="budget-item">
-                    <div className="budget-item-header">
-                      <span className="budget-item-name">Groceries</span>
-                      <span className="budget-item-amount">$0 / $500</span>
-                    </div>
-                    <div className="budget-progress-bar">
-                      <div
-                        className="budget-progress-fill budget-progress-fill-1"
-                        style={{ width: '0%' }}
-                      />
-                    </div>
-                  </div>
-                  <div className="budget-item">
-                    <div className="budget-item-header">
-                      <span className="budget-item-name">Dining Out</span>
-                      <span className="budget-item-amount">$0 / $200</span>
-                    </div>
-                    <div className="budget-progress-bar">
-                      <div
-                        className="budget-progress-fill budget-progress-fill-2"
-                        style={{ width: '0%' }}
-                      />
-                    </div>
-                  </div>
+                  {statistics?.expensesByCategory?.length ? (
+                    statistics.expensesByCategory.map(
+                      (
+                        cat: {
+                          categoryName: string;
+                          categoryId: number;
+                          totalAmount: number;
+                        },
+                        idx: number
+                      ) => {
+                        const spent = Number(cat.totalAmount ?? 0);
+                        const fillPct = Math.min(
+                          100,
+                          BUDGET_CAP_PER_CATEGORY > 0
+                            ? (spent / BUDGET_CAP_PER_CATEGORY) * 100
+                            : 0
+                        );
+                        const fillClass =
+                          idx % 2 === 0
+                            ? 'budget-progress-fill-1'
+                            : 'budget-progress-fill-2';
+                        return (
+                          <div
+                            className="budget-item"
+                            key={cat.categoryId ?? idx}
+                          >
+                            <div className="budget-item-header">
+                              <span className="budget-item-name">
+                                {cat.categoryName}
+                              </span>
+                              <span className="budget-item-amount">
+                                {formatMoney(spent)} / {BUDGET_CAP_PER_CATEGORY}{' '}
+                                {baseCurrency}
+                              </span>
+                            </div>
+                            <div className="budget-progress-bar">
+                              <div
+                                className={`budget-progress-fill ${fillClass}`}
+                                style={{ width: `${fillPct}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+                    )
+                  ) : (
+                    <p className="legend-name">
+                      Nicio categorie de cheltuială în această lună.
+                    </p>
+                  )}
                 </div>
               </div>
             </>

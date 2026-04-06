@@ -14,5 +14,7 @@ public class AuthResponseDTO {
     private String email;
     private Role role;
     private Long userId;
+    /** Moneda de bază a utilizatorului (ISO 4217) */
+    private String baseCurrency;
 
 }

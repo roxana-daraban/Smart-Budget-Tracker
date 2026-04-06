@@ -10,6 +10,7 @@ function saveUserToStorage(user) {
       username: user.username ?? null,
       email: user.email ?? null,
       role: user.role ?? null,
+      baseCurrency: user.baseCurrency ?? 'RON',
     }));
   }
 }
@@ -23,6 +24,7 @@ export const authService = {
       email: data.email,
       username: data.username,
       role: data.role,
+      baseCurrency: data.baseCurrency ?? 'RON',
     };
     saveUserToStorage(user);
     return { token: data.token, user };
@@ -36,6 +38,7 @@ export const authService = {
       email: data.email,
       username: data.username,
       role: data.role,
+      baseCurrency: data.baseCurrency ?? 'RON',
     };
     saveUserToStorage(user);
     return { token: data.token, user };
@@ -76,6 +79,7 @@ export const authService = {
       email: data.email,
       username: data.username,
       role: data.role,
+      baseCurrency: data.baseCurrency ?? 'RON',
     };
     saveUserToStorage(user);
     return { user };
